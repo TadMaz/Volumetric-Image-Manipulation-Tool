@@ -12,8 +12,8 @@ namespace MZRTAD001
         std::vector<unsigned char**> slices; // data for each slice, in order
 
     public:
-        VolImage(); // default constructor - define in .cpp
-        ~VolImage(); // destructor - define in .cpp file
+        MZRTAD001::VolImage(); // default constructor - define in .cpp
+        MZRTAD001::~VolImage(); // destructor - define in .cpp file
         // populate the object with images in stack and
         //set member variables define in .cpp
         
