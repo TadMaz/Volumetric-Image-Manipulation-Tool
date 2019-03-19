@@ -28,6 +28,10 @@ namespace MZRTAD001
         //and pointers (ignore vector<> container, dims etc)
         
         int volImageSize(void); // define in .cpp
+
+        int getNumberOfSlices(void);
+
+        void extractRowAcrossSlices(int rowNo);
     };
 }
 #endif 
