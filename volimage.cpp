@@ -105,8 +105,6 @@ namespace MZRTAD001
                 unsigned char ** slice = new unsigned char*[height];
                 unsigned char pixel_value;
 
-                cout<<"Starting memory allocation for slice "<<i<<endl;
-
                 for(int rowNo = 0 ; rowNo < height; rowNo++){
 
                     slice[rowNo] = new u_char[width];
@@ -221,17 +219,42 @@ namespace MZRTAD001
             return total_bytes;
         }
 
+        //return number of slices "images" in volumetric image
+        int getNumberOfSlices(void){
+
+            return slices.size();
+        }
+
 
     };    
 }
 
-int main(void ){
+int main(int argv , char*argc[] ){
 
+    cout<<argv<<endl;
+
+    //instantiate Volumentric Image object
     MZRTAD001::VolImage image;
+    string base_name;
 
-    image.readImages("MRI");
-    image.diffmap(2,4,"difftest");
-    image.extract(5,"extractest");
+    //1 argument, run readImages + display 
+    if (argv == 2){
+        
+        base_name = argc[1];
+        cout<<base_name<<endl;
+        image.readImages(base_name);
+        
+        cout<<"Number of images: "<<image.getNumberOfSlices()<<endl;
+        cout<<"Number of bytes required: "<<image.volImageSize()<<endl;
+    
+    //
+    }else if(){
+
+    }
+    
+    // image.readImages("MRI");
+    // image.diffmap(2,4,"difftest");
+    // image.extract(5,"extractest");
 
     return 0;
 }
