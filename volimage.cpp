@@ -7,6 +7,8 @@
 #include <iostream>
 #include <sstream>
 
+#define raw_ext ".raw"
+#define header_ext ".data"
 
 using namespace std;
 
@@ -29,15 +31,14 @@ namespace MZRTAD001
          // destructor - define in .cpp file
         ~VolImage(){
 
+            //clear array containing pointers
             for (int i = 0; i < slices.size(); i++){
                 
+                //clear array containing values
                 for(int j = 0; j < height; j++){
-
-                    for(int k = 0; k < width; k++){
-                         delete [] slices[j][k];   
-                    } 
-                    delete[] slices[j];
+                    delete [] slices[i][j];  
                 }
+                delete[] slices[i];
             }
         }
        
@@ -80,7 +81,6 @@ namespace MZRTAD001
 
             cout<<width<<" "<<height<<" "<<no_of_slices<<endl;
 
-
             //reserve memory for vector containing slices
             slices.reserve(no_of_slices);
 
@@ -100,12 +100,10 @@ namespace MZRTAD001
                     return -2;
                 }
 
-                
-                
                 //dyanamically allocate memory
 
-                u_char ** slice = new u_char*[height];
-                u_char pixel_value;
+                unsigned char ** slice = new unsigned char*[height];
+                unsigned char pixel_value;
 
                 cout<<"Starting memory allocation for slice "<<i<<endl;
 
@@ -120,14 +118,13 @@ namespace MZRTAD001
                     }
 
                 }
-                slices[i] = slice;
+                slices.push_back(slice);
                 
-                cout<<"Dynamically allocated memory for slice "<<i<<endl;
+                cout<<"Dynamically allocated memory for slice "<<slices.size()<<endl;
 
                 //close the image "slice".
                 imagefile.close();
             }
-
         }
 
 
@@ -137,7 +134,7 @@ namespace MZRTAD001
             
             //print function call
             cout<<"Difference Map Function called."<<endl;
-            
+            cout<<slices.size()<<endl;
             //initialise file output stream
             ofstream outfile;
 
@@ -145,15 +142,21 @@ namespace MZRTAD001
             string filename = output_prefix+".raw";
             outfile.open(filename);
 
+            if(!outfile){
+                cerr<<"Failed to open file : "<<filename<<" to write difference map"<<endl;
+                return;
+            }
+
             //write diff to output file.
             unsigned char diff;
 
             for (int r = 0; r < height; r++){
 
                 for(int c = 0; c < width; c++){
-
-                   diff =  (unsigned char)(abs((float)slices[sliceI][r][c] - (float)slices[sliceJ][r][c])/2);
-                   outfile<<diff; 
+                   
+                   diff =  (unsigned char)(abs((float)slices.at(sliceI)[r][c] - (float)slices.at(sliceJ)[r][c])/2);
+                   outfile<<diff;
+                   
                 }
             }    
             
@@ -164,18 +167,63 @@ namespace MZRTAD001
         }
         
         // extract slice sliceId and write to output - define in .cpp
-        void extract(int sliceId, std::string output_prefix);
+        void extract(int sliceId, std::string output_prefix){
 
+            //print function call
+            cout<<"Extract function called"<<endl;
+
+            if (!slices.size()){
+                cout<<slices.size()<<endl;
+                cerr<<"The loaded image is empty. No slice to extract."<<endl;
+                return;
+            }
+
+            if(sliceId >=slices.size()){
+                cerr<<"Slice ID given is out of range.Only "<<slices.size()<<" slices loaded."<<endl;
+                return;
+            }
+
+             //initialise file output stream
+            ofstream outfile;
+
+            //open output file
+            string filename =  output_prefix + raw_ext;
+            outfile.open(filename);
+            
+            if(!outfile){
+                cerr<<"Failed to open file : "<<filename<<" to write extract slice"<<endl;
+                return;
+            }
+
+            //write extacted pixels to file
+            
+            for (int r = 0; r < height; r++){
+
+                for(int c = 0; c < width; c++){
+
+                    outfile<<(unsigned char)slices[sliceId][r][c];       
+                }
+            }
+
+            //close file
+            outfile.close();
+            
+            return;
+        }
 
         // number of bytes uses to store image data bytes
         //and pointers (ignore vector<> container, dims etc)
-        int volImageSize(void); // define in .cpp
+        int volImageSize(void){
+            
+            //total bytes = (no of pixels * 1 byte each) + ( height* 8 bytes (64-bit architecture) ) 
+            int total_bytes = (width*height) + height*8; 
+            
+            return total_bytes;
+        }
 
 
     };    
 }
-
-
 
 int main(void ){
 
@@ -183,6 +231,7 @@ int main(void ){
 
     image.readImages("MRI");
     image.diffmap(2,4,"difftest");
+    image.extract(5,"extractest");
 
     return 0;
 }
